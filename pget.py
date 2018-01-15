@@ -36,8 +36,12 @@ class DownLoadSession():
             con = httpClient.request('HEAD', url.path+"?"+url.query)
             response = httpClient.getresponse()
             if response.status>=200 and response.status <300:
-                length = int(response.getheader("Content-Length"))
-                print("获得文件大小%d"%length)
+                try:
+                    length  = int(response.getheader("Content-Length"))
+                    print("获得文件大小%s"%length)
+                except Exception as e:
+                    length = 0
+                    print("获得文件大小失败%s"%str(e))
                 self.length = length
                 self.url = url
                 pass
@@ -111,10 +115,14 @@ class DownLoadSession():
             #response是HTTPResponse对象
             response = httpClient.getresponse()
             if response.status>=200 and response.status <300:
-                length = int(response.getheader("Content-Length"))
+                try:
+                    length = int(response.getheader("Content-Length"))
+                except Exception as e:
+                    length = 0
                 if length!=self.length:
-                    print(length)
-                    # self.length = length
+                    #print(length)
+                    self.length = length
+                    pass
                 with open(fileName+tmpExt,'ab') as file:
                     print("正在下载"+fileName)
                     i=0;
@@ -124,17 +132,18 @@ class DownLoadSession():
                         currentPoz = file.tell()
                         i+=1
                         if len(fileContext)==0:
-                            os.rename(fileName+tmpExt,fileName)
-                            os.remove(fileName+locExt)
-                            print("%s"%(100*" "))
-                            print("下载完成")
                             break
                         file.write(fileContext)
-                        self.save(currentPoz)
-                        self.draw(currentPoz)
+                        if self.length != 0:
+                            self.save(currentPoz)
+                            self.draw(currentPoz)
                         pass
                     pass
                 pass
+                os.rename(fileName+tmpExt,fileName)
+                os.remove(fileName+locExt)
+                print("%s"%(100*" "))
+                print("下载完成")
         # except Exception as e:
         #     print(e)
         #     pass
